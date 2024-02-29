@@ -2,8 +2,8 @@ use gif::{Encoder, Frame, Repeat};
 use std::borrow::Cow;
 use std::fs::File;
 
-const WIDTH: usize = 386;
-const HEIGHT: usize = 218;
+const WIDTH: usize = 394;
+const HEIGHT: usize = 226;
 
 const MARGIN: usize = 10;
 
@@ -33,7 +33,8 @@ fn main() {
     encoder.set_repeat(Repeat::Infinite).unwrap();
     for _ in 0..iters {
         let x = state.state;
-        let curr = x.iter()
+        let curr = x
+            .iter()
             .skip(1)
             .take(HEIGHT - MARGIN)
             .map(|x| {
@@ -45,14 +46,10 @@ fn main() {
             })
             .enumerate()
             .fold(
-                [0; (WIDTH - MARGIN) * (HEIGHT - MARGIN) * 25],
+                [0; (WIDTH - MARGIN) * (HEIGHT - MARGIN)],
                 |mut sum, curr| {
-                    for j in 0..5 {
-                        for i in 0..WIDTH - MARGIN {
-                            for k in 0..5 {
-                                sum[i + k + curr.0 * (WIDTH - MARGIN) * j] = curr.1[i];
-                            }
-                        }
+                    for i in 0..WIDTH - MARGIN {
+                        sum[i + curr.0 * (WIDTH - MARGIN)] = curr.1[i];
                     }
                     sum
                 },
