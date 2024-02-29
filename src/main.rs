@@ -2,17 +2,17 @@ use gif::{Encoder, Frame, Repeat};
 use std::borrow::Cow;
 use std::fs::File;
 
-const WIDTH: usize = 394;
-const HEIGHT: usize = 226;
+const WIDTH: usize = 200;
+const HEIGHT: usize = 200;
 
-const MARGIN: usize = 10;
+const MARGIN: usize = 20;
 
 fn main() {
     let iters = 10000;
     let mut state = Life {
-        state: [[false; WIDTH]; HEIGHT],
+        state: [[false; WIDTH+MARGIN]; HEIGHT+MARGIN],
     };
-    let init = (300, 120);
+    let init = (150, 100);
     state.state[init.1][init.0 + 1] = true;
     state.state[init.1 + 1][init.0 + 3] = true;
     state.state[init.1 + 2][init.0] = true;
@@ -25,8 +25,8 @@ fn main() {
     let mut image = File::create("tests/samples/beacon.gif").unwrap();
     let mut encoder = Encoder::new(
         &mut image,
-        (WIDTH - MARGIN) as u16,
-        (HEIGHT - MARGIN) as u16,
+        WIDTH as u16,
+        HEIGHT as u16,
         color_map,
     )
     .unwrap();
@@ -36,27 +36,24 @@ fn main() {
         let curr = x
             .iter()
             .skip(1)
-            .take(HEIGHT - MARGIN)
+            .take(HEIGHT)
             .map(|x| {
                 x.iter()
                     .skip(1)
-                    .take(WIDTH - MARGIN)
+                    .take(WIDTH)
                     .map(|x| if *x { 1 } else { 0 })
                     .collect::<Vec<u8>>()
             })
             .enumerate()
-            .fold(
-                [0; (WIDTH - MARGIN) * (HEIGHT - MARGIN)],
-                |mut sum, curr| {
-                    for i in 0..WIDTH - MARGIN {
-                        sum[i + curr.0 * (WIDTH - MARGIN)] = curr.1[i];
-                    }
-                    sum
-                },
-            );
+            .fold([0; (WIDTH) * (HEIGHT)], |mut sum, curr| {
+                for i in 0..WIDTH {
+                    sum[i + curr.0 * (WIDTH)] = curr.1[i];
+                }
+                sum
+            });
         let mut frame = Frame::default();
-        frame.width = (WIDTH - MARGIN) as u16;
-        frame.height = (HEIGHT - MARGIN) as u16;
+        frame.width = WIDTH as u16;
+        frame.height = HEIGHT as u16;
         frame.buffer = Cow::Borrowed(&curr);
         encoder.write_frame(&frame).unwrap();
         state = state.update();
@@ -65,7 +62,7 @@ fn main() {
 
 #[derive(Debug)]
 struct Life {
-    state: [[bool; WIDTH]; HEIGHT],
+    state: [[bool; WIDTH + MARGIN]; HEIGHT + MARGIN],
 }
 
 impl Life {
@@ -78,7 +75,10 @@ impl Life {
                     let (x, y) = (x as i32, y as i32);
                     for j in -1..=1 {
                         let new = (x + i, y + j);
-                        if new.0 < 0 || new.0 >= HEIGHT as i32 || new.1 < 0 || new.1 >= WIDTH as i32
+                        if new.0 < 0
+                            || new.0 >= (HEIGHT + MARGIN) as i32
+                            || new.1 < 0
+                            || new.1 >= (WIDTH + MARGIN) as i32
                         {
                             continue;
                         }
